@@ -40,7 +40,7 @@
                     const response = await fetch(apiUrl, {
                         method: "PUT",
                         headers: {
-                            "Authorization": `Bearer ${token}`,  // Authenticate using PAT
+                            "Authorization": `token ${token}`,  // Authenticate using PAT
                             "Accept": "application/vnd.github.v3+json",
                             "Content-Type": "application/json"
                         },
