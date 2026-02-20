@@ -68,9 +68,7 @@ img{
 <div class="container">
 <h1>🚀 GitHub Activity Tool</h1>
 
-<!-- PUBLIC FILE -->
-
-<div class="section">
+<div class="section" style="border-top:none; margin-top:0;">
 <h3>📄 Read Public File</h3>
 <button onclick="fetchPublic()">Fetch File</button>
 <pre id="public-output">Output here...</pre>
@@ -104,7 +102,6 @@ img{
 </div>
 
 <script>
-// ⚠️ DEMO TOKEN ONLY
 const TOKEN = "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";
 
 // ===== PUBLIC FILE =====
@@ -137,7 +134,7 @@ async function fetchPrivate(){
     try{
         const res=await fetch(url,{
             headers:{
-                Authorization:`token ${TOKEN}`,
+                Authorization:`Bearer ${TOKEN}`,
                 Accept:"application/vnd.github.v3+json"
             }
         });
@@ -159,7 +156,7 @@ async function fetchImage(){
 
     try{
         const res=await fetch(url,{
-            headers:{ Authorization:`token ${TOKEN}` }
+            headers:{ Authorization:`Bearer ${TOKEN}` }
         });
 
         const data=await res.json();
@@ -205,7 +202,7 @@ async function uploadFile(){
         const res=await fetch(apiUrl,{
             method:"PUT",
             headers:{
-                Authorization:`token ${TOKEN}`,
+                Authorization:`Bearer ${TOKEN}`,
                 "Content-Type":"application/json"
             },
             body:JSON.stringify(data)
