@@ -137,7 +137,7 @@ async function fetchPrivate(){
     try{
         const res=await fetch(url,{
             headers:{
-                Authorization:`Bearer ${TOKEN}`,
+                Authorization:`token ${TOKEN}`,
                 Accept:"application/vnd.github.v3+json"
             }
         });
@@ -159,7 +159,7 @@ async function fetchImage(){
 
     try{
         const res=await fetch(url,{
-            headers:{ Authorization:`Bearer ${TOKEN}` }
+            headers:{ Authorization:`token ${TOKEN}` }
         });
 
         const data=await res.json();
@@ -205,7 +205,7 @@ async function uploadFile(){
         const res=await fetch(apiUrl,{
             method:"PUT",
             headers:{
-                Authorization:`Bearer ${TOKEN}`,
+                Authorization:`token ${TOKEN}`,
                 "Content-Type":"application/json"
             },
             body:JSON.stringify(data)
