@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Cloud Computing — Tools</title>
+	<style>
+		:root{--bg:#0f1724;--card:#0b1220;--muted:#9aa4b2;--accent:#06b6d4;--glass:rgba(255,255,255,0.04)}
+		html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#071029 0%, #071827 60%);color:#e6eef6}
+		.wrap{max-width:1100px;margin:28px auto;padding:24px}
+		header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+		h1{margin:0;font-size:20px}
+		p.lead{margin:0;color:var(--muted);font-size:13px}
+		.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+		.card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:10px;padding:16px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+		label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+		input[type=text], input[type=password], select{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+		.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+		.btn{padding:10px 14px;border-radius:8px;border:0;cursor:pointer;font-weight:600}
+		.btn:active{transform:translateY(1px)}
+		.btn-primary{background:linear-gradient(90deg,#06b6d4,#3b82f6);color:#042024}
+		.btn-success{background:linear-gradient(90deg,#10b981,#34d399);color:#042023}
+		.btn-danger{background:linear-gradient(90deg,#ef4444,#f97316);color:#2b0b07}
+		.btn-info{background:linear-gradient(90deg,#7c3aed,#60a5fa);color:#071025}
+		pre.output{background:var(--card);padding:12px;border-radius:8px;min-height:120px;overflow:auto;color:#dbeafe}
+		.image-wrap{display:flex;align-items:center;justify-content:center;min-height:140px;background:var(--glass);border-radius:8px}
+		.hint{font-size:12px;color:var(--muted);margin-top:8px}
+		@media(max-width:900px){.grid{grid-template-columns:1fr}}
+	</style>
+</head>
+<body>
+	<div class="wrap">
+		<header>
+			<div>
+				<h1>Cloud Tools — Single Page</h1>
+				<p class="lead">Read, fetch images, and upload to GitHub (enter token when accessing private repo).</p>
+			</div>
+		</header>
+
+		<div class="card">
+			<label>GitHub Token (leave empty for public repos)</label>
+			<input id="token" type="password" placeholder="Paste Personal Access Token here" />
+			<div class="hint">Token is only used in-browser; never commit it to source control.</div>
+		</div>
+
+		<div class="grid">
+			<section class="card">
+				<h3>Read Public / Private Text File</h3>
+				<label>Owner / Repo / Path</label>
+				<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+					<input id="owner" type="text" placeholder="owner (e.g. jasper754)">
+					<input id="repo" type="text" placeholder="repo (e.g. cloud_computing)">
+					<input id="path" type="text" placeholder="path (e.g. 67.txt)">
+				</div>
+				<div class="controls">
+					<button class="btn btn-primary" onclick="readFile(false)">Fetch (auto public)</button>
+					<button class="btn btn-info" onclick="readFile(true)">Fetch (force auth)</button>
+				</div>
+				<pre id="fileOutput" class="output">File content will appear here...</pre>
+			</section>
+
+			<section class="card">
+				<h3>Fetch Image from GitHub</h3>
+				<label>Owner / Repo / Path</label>
+				<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+					<input id="imgOwner" type="text" placeholder="owner">
+					<input id="imgRepo" type="text" placeholder="repo">
+					<input id="imgPath" type="text" placeholder="patrick.png">
+				</div>
+				<div class="controls">
+					<button class="btn btn-success" onclick="fetchImage()">Fetch Image</button>
+					<button class="btn btn-danger" onclick="clearImage()">Clear</button>
+				</div>
+				<div class="image-wrap" id="imageContainer">Image will appear here</div>
+			</section>
+
+			<section class="card">
+				<h3>Upload File to Repo</h3>
+				<label>Select file to upload</label>
+				<input id="uploadFile" type="file">
+				<label>Target path inside repo (e.g. uploaded.png)</label>
+				<input id="uploadPath" type="text" placeholder="uploaded-file.png">
+				<div class="controls">
+					<button class="btn btn-primary" onclick="uploadToRepo()">Upload</button>
+				</div>
+				<pre id="uploadOutput" class="output">Upload status appears here...</pre>
+			</section>
+
+			<section class="card">
+				<h3>Quick Examples & Info</h3>
+				<div class="hint">Use the top token field for private repo access. Buttons have distinct styles: <span style="font-weight:700">Primary</span>, <span style="color:#34d399">Success</span>, <span style="color:#f97316">Danger</span>, <span style="color:#60a5fa">Info</span>.</div>
+				<div style="height:12px"></div>
+				<div class="hint">If a file is too large for the contents API GitHub will return a download_url — the script will follow it when available.</div>
+			</section>
+		</div>
+	</div>
+
+	<script>
+		function getAuthHeader(useAuth){
+			const t = document.getElementById('token').value.trim();
+			if(useAuth && t) return {'Authorization': 'Bearer '+t};
+			if(useAuth && !t) alert('No token provided — request will likely fail for private repos.');
+			return {};
+		}
+
+		async function readFile(forceAuth){
+			const owner = document.getElementById('owner').value.trim();
+			const repo = document.getElementById('repo').value.trim();
+			const path = document.getElementById('path').value.trim();
+			const out = document.getElementById('fileOutput');
+			if(!owner||!repo||!path){out.textContent='Fill owner, repo and path.';return}
+			out.textContent='Loading...';
+			const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+			try{
+				const headers = Object.assign({'Accept':'application/vnd.github.v3+json'}, getAuthHeader(forceAuth));
+				let res = await fetch(url+'?ref=main', {headers});
+				if(!res.ok) throw res;
+				const data = await res.json();
+				if(data.content){
+					const text = atob(data.content.replace(/\n/g,''));
+					out.textContent = text;
+				} else if(data.download_url){
+					const txt = await (await fetch(data.download_url)).text();
+					out.textContent = txt;
+				} else {
+					out.textContent = JSON.stringify(data, null, 2);
+				}
+			}catch(e){
+				try{ const j = await e.json(); out.textContent = 'Error: '+(j.message||JSON.stringify(j)); }catch(_){ out.textContent = 'Fetch error: '+e.status+' '+e.statusText; }
+			}
+		}
+
+		function inferMime(filename){
+			const ext = (filename||'').split('.').pop().toLowerCase();
+			const map = {png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp',svg:'image/svg+xml',txt:'text/plain',md:'text/markdown'};
+			return map[ext]||'application/octet-stream';
+		}
+
+		async function fetchImage(){
+			const owner = document.getElementById('imgOwner').value.trim();
+			const repo = document.getElementById('imgRepo').value.trim();
+			const path = document.getElementById('imgPath').value.trim();
+			const cont = document.getElementById('imageContainer');
+			cont.innerHTML = 'Loading...';
+			if(!owner||!repo||!path){cont.textContent='Please fill owner, repo, and path.';return}
+			const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+			try{
+				const headers = Object.assign({'Accept':'application/vnd.github.v3+json'}, getAuthHeader(true));
+				let res = await fetch(url, {headers});
+				if(!res.ok) throw res;
+				const data = await res.json();
+				if(data.content && data.encoding==='base64'){
+					const base64 = data.content.replace(/\n/g,'');
+					const mime = inferMime(path);
+					const img = new Image(); img.src = `data:${mime};base64,${base64}`;
+					img.style.maxWidth='100%'; img.style.maxHeight='320px'; img.alt = path;
+					cont.innerHTML = ''; cont.appendChild(img);
+				} else if(data.download_url){
+					const img = new Image(); img.src = data.download_url; img.style.maxWidth='100%'; img.style.maxHeight='320px';
+					cont.innerHTML=''; cont.appendChild(img);
+				} else {
+					cont.textContent = 'Image content not available.';
+				}
+			}catch(err){
+				cont.textContent = 'Error fetching image.';
+				console.error(err);
+			}
+		}
+
+		function clearImage(){ document.getElementById('imageContainer').innerHTML='Image will appear here'; }
+
+		async function uploadToRepo(){
+			const fileInput = document.getElementById('uploadFile');
+			const targetPath = document.getElementById('uploadPath').value.trim();
+			const owner = document.getElementById('owner').value.trim();
+			const repo = document.getElementById('repo').value.trim();
+			const out = document.getElementById('uploadOutput');
+			if(!fileInput.files.length){ out.textContent='Please choose a file to upload.'; return }
+			if(!owner||!repo||!targetPath){ out.textContent='Fill owner, repo and target path.'; return }
+			const file = fileInput.files[0];
+			out.textContent = 'Reading file...';
+			const reader = new FileReader();
+			reader.onload = async (ev) => {
+				const base64 = ev.target.result.split(',')[1];
+				const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${targetPath}`;
+				const body = { message: `Add ${targetPath} via web`, content: base64 };
+				try{
+					const headers = Object.assign({'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'}, getAuthHeader(true));
+					const res = await fetch(apiUrl, { method:'PUT', headers, body: JSON.stringify(body)});
+					const j = await res.json();
+					if(res.ok){ out.textContent = 'Upload successful: ' + (j.content && j.content.html_url ? j.content.html_url : 'OK'); }
+					else { out.textContent = 'Upload failed: ' + (j.message || JSON.stringify(j)); }
+				}catch(e){ out.textContent = 'Upload error.'; console.error(e); }
+			};
+			reader.readAsDataURL(file);
+		}
+	</script>
+</body>
+</html>
+
