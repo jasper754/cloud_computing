@@ -1,20 +1,17 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GitHub Activity Tool</title>
-
+<title>GitHub Token Tool</title>
 <style>
-body{
+body {
     font-family: Arial, sans-serif;
     background:#f5f7fb;
     margin:0;
     padding:20px;
 }
-
-.container{
+.container {
     max-width:800px;
     margin:auto;
     background:white;
@@ -22,19 +19,16 @@ body{
     border-radius:10px;
     box-shadow:0 5px 15px rgba(0,0,0,0.1);
 }
-
-h1{
+h1 {
     text-align:center;
     color:#4a56e2;
 }
-
-.section{
+.section {
     margin-top:25px;
     padding-top:15px;
     border-top:1px solid #ddd;
 }
-
-button{
+button {
     background:#4a56e2;
     color:white;
     border:none;
@@ -43,55 +37,44 @@ button{
     cursor:pointer;
     margin-top:8px;
 }
-
-button:hover{
+button:hover {
     background:#3942b8;
 }
-
-pre{
+pre {
     background:#f1f1f1;
     padding:10px;
     border-radius:6px;
     overflow:auto;
 }
-
-img{
+img {
     max-width:100%;
     margin-top:10px;
     border-radius:8px;
 }
 </style>
-
 </head>
-
 <body>
+
 <div class="container">
-<h1>🚀 GitHub Activity Tool</h1>
+<h1>🚀 GitHub Token Tool</h1>
 
-<div class="section" style="border-top:none; margin-top:0;">
-<h3>📄 Read Public File</h3>
-<button onclick="fetchPublic()">Fetch File</button>
-<pre id="public-output">Output here...</pre>
+<!-- Fetch File -->
+<div class="section">
+<h3>📄 Fetch File</h3>
+<input type="text" id="filePath" placeholder="Enter file path (e.g., 67.txt)">
+<button onclick="fetchFile()">Fetch File</button>
+<pre id="file-output">Output here...</pre>
 </div>
 
-<!-- PRIVATE FILE -->
-
+<!-- Fetch Image -->
 <div class="section">
-<h3>🔐 Read Private File</h3>
-<button onclick="fetchPrivate()">Fetch File</button>
-<pre id="private-output">Output here...</pre>
-</div>
-
-<!-- IMAGE -->
-
-<div class="section">
-<h3>🖼 Fetch Private Image</h3>
+<h3>🖼 Fetch Image</h3>
+<input type="text" id="imagePath" placeholder="Enter image path (e.g., patrick.png)">
 <button onclick="fetchImage()">Fetch Image</button>
 <div id="image-output"></div>
 </div>
 
-<!-- UPLOAD -->
-
+<!-- Upload File -->
 <div class="section">
 <h3>⬆ Upload File</h3>
 <input type="file" id="fileInput">
@@ -102,119 +85,92 @@ img{
 </div>
 
 <script>
-const TOKEN = "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";
+// ===== CONFIG =====
+const TOKEN = "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"; // <-- Replace with your token
+const OWNER = "jasper754";
+const REPO = "cloud_computing";
+const BRANCH = "main";
 
-// ===== PUBLIC FILE =====
-async function fetchPublic(){
-    const owner="jasper754";
-    const repo="cloud-computing";
-    const path="67.txt";
-    const branch="main";
+// ===== FETCH FILE =====
+async function fetchFile() {
+    const path = document.getElementById("filePath").value;
+    const output = document.getElementById("file-output");
+    if (!path) return alert("Enter a file path.");
 
-    const url=`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
-
-    try{
-        const res=await fetch(url);
-        const data=await res.json();
-        document.getElementById("public-output").textContent=atob(data.content);
-    }catch{
-        document.getElementById("public-output").textContent="Failed to load.";
-    }
-}
-
-// ===== PRIVATE FILE =====
-async function fetchPrivate(){
-    const owner="jasper754";
-    const repo="cloud_computing";
-    const path="67.txt";
-    const branch="main";
-
-    const url=`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
-
-    try{
-        const res=await fetch(url,{
-            headers:{
-                Authorization:`token ${TOKEN}`,
-                Accept:"application/vnd.github.v3+json"
+    const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`;
+    try {
+        const res = await fetch(url, {
+            headers: { 
+                Authorization: `token ${TOKEN}`,
+                Accept: "application/vnd.github.v3+json"
             }
         });
-
-        const data=await res.json();
-        document.getElementById("private-output").textContent=atob(data.content);
-    }catch{
-        document.getElementById("private-output").textContent="Failed to load.";
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const data = await res.json();
+        output.textContent = atob(data.content);
+    } catch (err) {
+        output.textContent = "Failed to load: " + err;
     }
 }
 
 // ===== FETCH IMAGE =====
-async function fetchImage(){
-    const owner="jasper754";
-    const repo="cloud_computing";
-    const path="patrick.png";
+async function fetchImage() {
+    const path = document.getElementById("imagePath").value;
+    const container = document.getElementById("image-output");
+    container.innerHTML = "";
+    if (!path) return alert("Enter an image path.");
 
-    const url=`https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-
-    try{
-        const res=await fetch(url,{
-            headers:{ Authorization:`token ${TOKEN}` }
+    const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
+    try {
+        const res = await fetch(url, {
+            headers: { Authorization: `token ${TOKEN}` }
         });
-
-        const data=await res.json();
-
-        if(data.content){
-            const img=new Image();
-            img.src=`data:image/png;base64,${data.content}`;
-            const container=document.getElementById("image-output");
-            container.innerHTML="";
-            container.appendChild(img);
-        }
-    }catch{
-        alert("Failed to fetch image.");
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const data = await res.json();
+        if (!data.content) throw new Error("No content returned");
+        const img = new Image();
+        img.src = `data:image/png;base64,${data.content}`;
+        container.appendChild(img);
+    } catch (err) {
+        container.textContent = "Failed to load image: " + err;
     }
 }
 
-// ===== UPLOAD =====
-async function uploadFile(){
-    const fileInput=document.getElementById("fileInput");
+// ===== UPLOAD FILE =====
+async function uploadFile() {
+    const fileInput = document.getElementById("fileInput");
+    if (!fileInput.files.length) return alert("Select a file first.");
 
-    if(!fileInput.files.length){
-        alert("Select file first.");
-        return;
-    }
+    const file = fileInput.files[0];
+    const reader = new FileReader();
 
-    const file=fileInput.files[0];
-    const reader=new FileReader();
+    reader.onload = async function(e) {
+        const content = e.target.result.split(',')[1];
+        const path = file.name;
+        const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
 
-    reader.onload=async function(e){
-        const content=e.target.result.split(',')[1];
-
-        const owner="jasper754";
-        const repo="cloud_computing";
-        const path=file.name;
-
-        const apiUrl=`https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-
-        const data={
-            message:`Add ${file.name}`,
-            content:content
+        const data = {
+            message: `Add ${file.name}`,
+            content: content,
+            branch: BRANCH
         };
 
-        const res=await fetch(apiUrl,{
-            method:"PUT",
-            headers:{
-                Authorization:`token ${TOKEN}`,
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify(data)
-        });
+        try {
+            const res = await fetch(url, {
+                method: "PUT",
+                headers: {
+                    Authorization: `token ${TOKEN}`,
+                    "Content-Type": "application/json",
+                    Accept: "application/vnd.github.v3+json"
+                },
+                body: JSON.stringify(data)
+            });
 
-        const result=await res.json();
-        console.log("Upload response:", result);
-
-        if(res.ok){
-            alert("✅ Upload success!");
-        }else{
-            alert("❌ Error: "+JSON.stringify(result, null, 2));
+            const result = await res.json();
+            if (res.ok) alert("✅ Upload success!");
+            else alert("❌ Upload failed: " + result.message);
+        } catch (err) {
+            alert("Upload failed: " + err);
         }
     };
 
