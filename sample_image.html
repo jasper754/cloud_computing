@@ -13,13 +13,12 @@
 
     <script>
         async function fetchPrivateGitHubFile() {
-            const username = "vercs1";  // Replace with the repository owner
-            const repoName = "cc106_cloud1";    // Replace with the repository name
+            const username = "jasper754";  // Replace with the repository owner
+            const repoName = "cloud_computing";    // Replace with the repository name
             const filePath = "patrick.png"; // Replace with the file path
             const branch = "main";       // Replace with the branch name
 
-            const token = "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"; // 🔒 Replace with your PAT
-
+        const token = "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";
 
         const url = `https://api.github.com/repos/${username}/${repoName}/contents/${filePath}`;
 
@@ -27,7 +26,7 @@
         fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': Bearer ${token},
+                'Authorization': `Bearer ${token}`,
                 "Accept": "application/vnd.github.v3+json"
             }
         })
@@ -36,7 +35,7 @@
             if (data.content) {
                 // GitHub returns the file content as Base64 if the file is small
                 const base64Image = data.content;
-                const imageUrl = data:${data.encoding};base64,${base64Image};
+                const imageUrl = `data:${data.encoding};base64,${base64Image}`;
                 
                 // Create an image element and set its src to the Base64 URL
                 const img = new Image();

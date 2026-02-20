@@ -24,15 +24,15 @@
                 const content = event.target.result.split(',')[1]; // Get base64 data
                 
                 // Replace with your GitHub credentials
-                const githubUsername = 'vercs1'; 
-                const repo = 'cc106_cloud1';
-                const path = ${file.name}; // Path inside the repo
-                const token = "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"; 
+                const githubUsername = 'jasper754'; 
+                const repo = 'cloud_computing';
+                const path = `${file.name}`; // Path inside the repo
+                const token = "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"
 
                 const apiUrl = `https://api.github.com/repos/${githubUsername}/${repo}/contents/${path}`;
 
                 const data = {
-                    message: Adding ${file.name} to private repo,
+                    message: `Adding ${file.name} to private repo`,
                     content: content
                 };
 
@@ -40,7 +40,7 @@
                     const response = await fetch(apiUrl, {
                         method: "PUT",
                         headers: {
-                            "Authorization": token ${token},  // Authenticate using PAT
+                            "Authorization": `Bearer ${token}`,  // Authenticate using PAT
                             "Accept": "application/vnd.github.v3+json",
                             "Content-Type": "application/json"
                         },
@@ -49,9 +49,9 @@
 
                     const result = await response.json();
                     if (response.ok) {
-                        alert(File uploaded successfully! View it here: ${result.content.html_url});
+                        alert(`File uploaded successfully! View it here: ${result.content.html_url}`);
                     } else {
-                        alert(Error: ${result.message});
+                        alert(`Error: ${result.message}`);
                     }
                 } catch (error) {
                     console.error("Error uploading file:", error);
